@@ -3,11 +3,7 @@ var express  = require('express'),
     chalk    = require('chalk'),
     logLevel = process.env.environment === 'development' || process.env.environment === 'dev' ? 'debug' : 'info';
 
-winston.loggers.add('default', {
-  transports: [
-    new winston.transports.Console({ level: logLevel })
-  ]
-});
+winston.level = logLevel;
 
 var app = require('./app');
 
