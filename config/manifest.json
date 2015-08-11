@@ -1,0 +1,8 @@
+{
+  "test-app": {
+    "commands": [
+      "cd ../",
+      "echo \"hello\""
+    ]
+  }
+}

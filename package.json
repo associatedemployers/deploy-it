@@ -1,0 +1,25 @@
+{
+  "name": "deploy-it",
+  "version": "0.0.1",
+  "description": "Deployment Server",
+  "main": "index.js",
+  "repository": "https://github.com/associatedemployers/deploy-it",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "author": "Associated Employers",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^2.3.11",
+    "body-parser": "^1.12.0",
+    "chalk": "^0.5.1",
+    "express": "^4.10.2",
+    "fs-extra": "^0.12.0",
+    "glob": "^4.1.2",
+    "lodash": "^2.4.1",
+    "minimist": "^1.1.0",
+    "morgan": "^1.5.0",
+    "promise": "^6.0.1",
+    "winston": "^0.8.3"
+  }
+}
