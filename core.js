@@ -95,6 +95,11 @@ exports.pushed = function ( req, res ) {
     res.status(200).end();
   };
 
+  // Match ref so branches don't update the repo
+  if ( target.ref && target.ref !== req.body.ref ) {
+    return __finish();
+  }
+
   if ( !target.clone ) {
     __finish();
     _runCommands(target).catch(__handleError);
