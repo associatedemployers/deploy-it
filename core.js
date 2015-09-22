@@ -14,8 +14,9 @@ function _cloneTarget ( target, githubData ) {
   return new Promise(function ( resolve, reject ) {
     winston.log('debug', 'Cloning target...');
 
-    const _path = target.clonePath || settings.defaultClonePath;
-    var cloneCmd = 'cd && mkdir -p ' + _path + ' && cd ' + _path + ' && git clone ' + githubData.repository.clone_url;
+    var _path = target.clonePath || settings.defaultClonePath,
+        _cloneUrl = githubData.repository.private ? githubData.repository.ssh_url : githubData.repository.clone_url,
+        cloneCmd = 'cd && mkdir -p ' + _path + ' && cd ' + _path + ' && git clone ' + _cloneUrl;
 
     exec(cloneCmd, function ( error/*, sdout, stderr*/ ) {
       if ( error ) {
