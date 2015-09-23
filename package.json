@@ -1,6 +1,6 @@
 {
   "name": "deploy-it",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Deployment Server",
   "main": "index.js",
   "repository": "https://github.com/associatedemployers/deploy-it",
@@ -21,6 +21,7 @@
     "minimist": "^1.1.0",
     "morgan": "^1.5.0",
     "promise": "^6.0.1",
+    "slackbots": "^0.4.0",
     "winston": "^0.8.3"
   }
 }

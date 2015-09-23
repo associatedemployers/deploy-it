@@ -8,9 +8,85 @@ var Promise = require('bluebird');
 
 var exec = require('child_process').exec,
     manifest = require('./config/manifest'),
-    settings = require('./config/server');
+    settings = require('./config/server'),
+    SlackBot = require('slackbots'),
+    fs       = require('fs'),
+    _        = require('lodash');
+
+if ( !settings.slackbot.disable ) {
+  var slackBot = new SlackBot({
+    token: settings.slackbot.token,
+    name: settings.slackbot.name
+  });
+
+  var defaultSlackParams = {
+    'icon_url': settings.slackbot.icon
+  };
+}
+
+function _sendSlackMessage ( text ) {
+  if ( settings.slackbot.disable || !slackBot ) {
+    return;
+  }
+
+  slackBot.postMessageToChannel(settings.slackbot.channel, text, defaultSlackParams);
+}
+
+if ( !settings.slackbot.disable && slackBot ) {
+  slackBot.on('start', function () {
+    winston.debug('Connected to Slack.');
+  });
+
+  slackBot.on('message', function ( message ) {
+    if ( !message.text || message.type !== 'message' ) {
+      return undefined;
+    }
+
+    var msg = message.text;
+
+    var matches =/what.*version.*is\s*(.*)(\?.*$)/i.exec(msg);
+
+    if ( !matches || !matches[1] ) {
+      return undefined;
+    }
+
+    var user = _.find(slackBot.users, { id: message.user }),
+        userName = user && user.name ? user.name : 'you',
+        originalName = matches[1],
+        dasherized = originalName.trim().toLowerCase().replace(/\s/g, '-'),
+        repo = manifest[dasherized];
+
+    if ( !repo ) {
+      return _sendSlackMessage('@' + userName + ' Yo, I\'m not finding "' + originalName + '" in my list. Sorry. :broken_heart:');
+    }
+
+    var unknownVersion = function () {
+      _sendSlackMessage(':scream: @' + userName + '... It looks like ' + originalName + ' doesn\'t have a version! ');
+    };
+
+    if ( !repo.versionLocation ) {
+      return unknownVersion();
+    }
+
+    fs.stat(repo.versionLocation, function ( err ) {
+      if ( err ) {
+        return unknownVersion();
+      }
+
+      var versionInfo = require(repo.versionLocation);
+
+      if ( !versionInfo.version ) {
+        return unknownVersion();
+      }
+
+      _sendSlackMessage(':tada: I got it, @' + userName + '. ' + originalName + ' is, on my side, at version: ' + versionInfo.version);
+    });
+  });
+}
 
 function _cloneTarget ( target, githubData ) {
+  _sendSlackMessage(':phone::fax::pager::iphone: Hold the phones everyone, I\'m deploying a new version of ' + githubData.repository.name + '. Standby...');
+
   return new Promise(function ( resolve, reject ) {
     winston.log('debug', 'Cloning target...');
 
@@ -105,10 +181,14 @@ exports.pushed = function ( req, res ) {
     __finish();
     _runCommands(target).catch(__handleError);
   } else {
-
     _cloneTarget(target, req.body).then(function ( /* path */ ) {
       __finish();
-      return _runCommands(target);
+      return _runCommands(target).catch(function ( err ) {
+        _sendSlackMessage('Something happened while I was deploying ' + req.body.repository.name + '. :broken_heart: I didn\'t deploy the update. I\'m seriously upset. ERROR: ' + JSON.stringify(err));
+        throw err;
+      });
+    }).then(function () {
+      _sendSlackMessage(':punch: Fist bump! Just deployed a new version of ' + req.body.repository.name + '.');
     }).catch(__handleError);
   }
 };
