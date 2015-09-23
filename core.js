@@ -44,7 +44,7 @@ if ( !settings.slackbot.disable && slackBot ) {
 
     var msg = message.text;
 
-    var matches =/what.*version.*is\s*(.*)(\?.*$)/i.exec(msg);
+    var matches = /what.*version.*is\s*(.*)(\?.*$)/i.exec(msg);
 
     if ( !matches || !matches[1] ) {
       return undefined;
