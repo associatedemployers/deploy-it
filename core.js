@@ -73,7 +73,7 @@ if ( !settings.slackbot.disable && slackBot ) {
         return unknownVersion();
       }
 
-      var versionInfo = require(repo.versionLocation);
+      var versionInfo = JSON.parse(fs.readFileSync(repo.versionLocation));
 
       if ( !versionInfo.version ) {
         return unknownVersion();
