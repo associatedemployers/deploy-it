@@ -93,8 +93,9 @@ function _cloneTarget ( target, githubData ) {
     var _path = target.clonePath || settings.defaultClonePath,
         _cloneUrl = githubData.repository.private ? githubData.repository.ssh_url : githubData.repository.clone_url,
         ref = target.ref ? target.ref.split('/') : target.ref,
-        onBranch = ref && ref[ref.length] !== 'master' ? ref[ref.length] : false,
-        cloneCmd = 'cd && mkdir -p ' + _path + ' && cd ' + _path + ' && git clone ' + onBranch ? ' -b ' + onBranch + ' --single-branch ' : '' + _cloneUrl;
+        onBranch = ref && ref[ref.length - 1] !== 'master' ? ref[ref.length - 1] : false,
+        branchSegment = onBranch ? ' -b ' + onBranch + ' --single-branch ' : '',
+        cloneCmd = 'cd && mkdir -p ' + _path + ' && cd ' + _path + ' && git clone ' + branchSegment + _cloneUrl;
 
     exec(cloneCmd, function ( error/*, sdout, stderr*/ ) {
       if ( error ) {
