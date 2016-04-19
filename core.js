@@ -111,7 +111,7 @@ function _cloneTarget ( target, githubData ) {
   });
 }
 
-function _runCommands ( target ) {
+function _runCommands ( target, githubData ) {
   return new Promise(function ( resolve ) {
     winston.log('debug', 'Running target commands...');
 
@@ -120,7 +120,7 @@ function _runCommands ( target ) {
       return resolve();
     }
 
-    var _runCmd = function ( ret, command ) {
+    var _runCmd = function ( ret, command, i, l ) {
       return new Promise(function ( resolve, reject ) {
         winston.log('debug', 'Running command:', command);
         exec(command, function ( error, stdout ) {
@@ -128,6 +128,8 @@ function _runCommands ( target ) {
             _sendSlackMessage(':grimacing: I had trouble running a command for ' + githubData.repository.name + '.\nThe command was: ' + command + '\nERR:' + error);
             return reject(error);
           }
+
+          _sendSlackMessage(':heavy_check_mark: [' + githubData.repository.name + '] Successfully ran build command ' + (i + 1) + ' of ' + l + '.');
 
           winston.log('debug', stdout);
 
@@ -189,7 +191,7 @@ exports.pushed = function ( req, res ) {
   } else {
     _cloneTarget(target, req.body).then(function ( /* path */ ) {
       __finish();
-      return _runCommands(target);
+      return _runCommands(target, req.body);
     }).then(function () {
       _sendSlackMessage(':punch: Fist bump! Just deployed a new version of ' + req.body.repository.name + '.');
     }).catch(__handleError);
