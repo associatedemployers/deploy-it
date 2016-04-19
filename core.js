@@ -99,9 +99,11 @@ function _cloneTarget ( target, githubData ) {
 
     exec(cloneCmd, function ( error/*, sdout, stderr*/ ) {
       if ( error ) {
+        _sendSlackMessage(':grimacing: Whoops... I had trouble cloning ' + githubData.repository.name + '.\nERR:' + error);
         return reject(error);
       }
 
+      _sendSlackMessage(':ok_hand: I\'ve cloned ' + githubData.repository.name + '. Running build commands...');
       winston.log('debug', 'Cloned target.');
 
       resolve(_path);
@@ -123,6 +125,7 @@ function _runCommands ( target ) {
         winston.log('debug', 'Running command:', command);
         exec(command, function ( error, stdout ) {
           if ( error ) {
+            _sendSlackMessage(':grimacing: I had trouble running a command for ' + githubData.repository.name + '.\nThe command was: ' + command + '\nERR:' + error);
             return reject(error);
           }
 
@@ -186,10 +189,7 @@ exports.pushed = function ( req, res ) {
   } else {
     _cloneTarget(target, req.body).then(function ( /* path */ ) {
       __finish();
-      return _runCommands(target).catch(function ( err ) {
-        _sendSlackMessage('Something happened while I was deploying ' + req.body.repository.name + '. :broken_heart: I didn\'t deploy the update. I\'m seriously upset. ERROR: ' + JSON.stringify(err));
-        throw err;
-      });
+      return _runCommands(target);
     }).then(function () {
       _sendSlackMessage(':punch: Fist bump! Just deployed a new version of ' + req.body.repository.name + '.');
     }).catch(__handleError);
